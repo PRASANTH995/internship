@@ -1,0 +1,30 @@
+import pytest
+from app import app
+
+
+@pytest.fixture
+def client():
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        yield client
+
+
+def test_home(client):
+    rv = client.get('/')
+    assert rv.status_code == 200
+    assert rv.is_json
+    assert rv.get_json().get('message') == 'Hello from Flask CI/CD!'
+
+
+def test_status(client):
+    rv = client.get('/status')
+    assert rv.status_code == 200
+    data = rv.get_json()
+    assert data.get('status') == 'ok'
+    assert 'version' in data
+
+
+def test_healthz(client):
+    rv = client.get('/healthz')
+    assert rv.status_code == 200
+    assert rv.get_json().get('healthy') is True
